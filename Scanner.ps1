@@ -1,115 +1,142 @@
-﻿# Ottieni l'indirizzo IP locale
+# Network Scanner - Remote Execution Version with IRM | IEX
+# Author: CeresF3b
+# Usage: irm https://raw.githubusercontent.com/CeresF3b/NetworkScanner/main/Scanner.ps1 | iex
+
+# Get local IP address
 $ipconfig = ipconfig
 $ipAddressMatch = $ipconfig | Select-String -Pattern 'IPv4'
 $localIP = ($ipAddressMatch | Select-Object -First 1).ToString().Split()[-1]
 
-# Suddividi l'indirizzo IP in ottetti
+# Split IP address into octets
 $octets = $localIP.Split('.')
 $networkPrefix = "$($octets[0]).$($octets[1]).$($octets[2])"
 
-# Inizializza le variabili
+# Initialize variables
 $devicesFound = @()
 $activeIPs = @()
 $portScanResults = @()
-$totalHosts = 254  # Numero di host da scansionare nell'intervallo 1-254
+$totalHosts = 254  # Number of hosts to scan in range 1-254
 
-# Intervallo degli host da scansionare
+# Host range to scan
 $hostRange = 1..$totalHosts
 
-# Inizia la scansione degli host sulla rete
-Write-Host "`n[*] Inizio scansione degli host sulla rete $networkPrefix.0/24..."
+# Start scanning hosts on the network
+Write-Host "`n[*] Starting host scan on network $networkPrefix.0/24..." -ForegroundColor Cyan
 
-# Barra di progresso
+# Progress bar initialization
 $progressCount = 0
 
 foreach ($i in $hostRange) {
     $progressPercent = [int](($i / $totalHosts) * 100)
-    Write-Progress -Activity "Scansione degli host..." -Status "Percentuale completata: $progressPercent%" -PercentComplete $progressPercent
+    Write-Progress -Activity "Scanning hosts..." -Status "Progress: $progressPercent%" -PercentComplete $progressPercent
 
     $currentIP = "$networkPrefix.$i"
 
-    # Verifica se l'host è attivo
+    # Check if host is active
     if (Test-Connection -ComputerName $currentIP -Count 1 -Quiet -ErrorAction SilentlyContinue) {
-        # Tenta di ottenere il nome host
+        # Try to get hostname
         try {
             $hostEntry = [System.Net.Dns]::GetHostEntry($currentIP)
             $hostname = $hostEntry.HostName
         } catch {
-            $hostname = "Non disponibile"
+            $hostname = "Not available"
         }
 
-        # Salva le informazioni sul dispositivo
+        # Save device information
         $devicesFound += [PSCustomObject]@{
             IP       = $currentIP
             HostName = $hostname
         }
 
-        # Aggiungi l'IP alla lista degli IP attivi
+        # Add IP to active IPs list
         $activeIPs += $currentIP
     }
     $progressCount++
 }
 
-# Cancella la barra di progresso
-Write-Progress -Activity "Scansione completata" -Completed
+# Clear progress bar
+Write-Progress -Activity "Scan completed" -Completed
 
-# Verifica se sono stati trovati dispositivi attivi
+# Check if active devices were found
 if ($devicesFound.Count -gt 0) {
-    Write-Host "`n[*] Dispositivi attivi trovati sulla rete $networkPrefix.0/24:" -ForegroundColor Cyan
+    Write-Host "`n[*] Active devices found on network $networkPrefix.0/24:" -ForegroundColor Cyan
 
-    # Visualizza i risultati in formato tabellare
+    # Display results in table format
     $devicesFound | Sort-Object IP | Format-Table -AutoSize
 } else {
-    Write-Host "[*] Nessun dispositivo attivo trovato sulla rete." -ForegroundColor Yellow
+    Write-Host "[*] No active devices found on the network." -ForegroundColor Yellow
 }
 
-# Definisci le porte da scansionare (porte comuni)
+# Function to get service name for common ports
+function Get-PortService {
+    param (
+        [int]$PortNumber
+    )
+    
+    $portServices = @{
+        22   = "SSH"
+        80   = "HTTP"
+        135  = "RPC"
+        139  = "NetBIOS"
+        443  = "HTTPS"
+        445  = "SMB"
+        3389 = "RDP"
+    }
+    
+    if ($portServices.ContainsKey($PortNumber)) {
+        return $portServices[$PortNumber]
+    } else {
+        return "Unknown"
+    }
+}
+
+# Define ports to scan (common ports)
 $portsToScan = @(22, 80, 135, 139, 443, 445, 3389)
 
-# Inizia la scansione delle porte sugli host attivi
-Write-Host "`n[*] Inizio scansione delle porte sui dispositivi attivi..." -ForegroundColor Cyan
+# Start port scanning on active hosts
+Write-Host "`n[*] Starting port scan on active devices..." -ForegroundColor Cyan
 
 foreach ($device in $devicesFound) {
     $currentIP = $device.IP
-    Write-Host "[*] Scansione delle porte su $currentIP ($($device.HostName))..."
+    Write-Host "[*] Scanning ports on $currentIP ($($device.HostName))..."
 
     foreach ($port in $portsToScan) {
         try {
             $tcpClient = New-Object System.Net.Sockets.TcpClient
             
-            # Imposta il timeout di connessione
+            # Set connection timeout
             $asyncResult = $tcpClient.BeginConnect($currentIP, $port, $null, $null)
-            $waitSuccess = $asyncResult.AsyncWaitHandle.WaitOne(100, $false)  # Timeout di 100ms
+            $waitSuccess = $asyncResult.AsyncWaitHandle.WaitOne(100, $false)  # 100ms timeout
 
             if ($waitSuccess -and $tcpClient.Connected) {
-                Write-Host "[+] Porta $port aperta su $currentIP" -ForegroundColor Green
+                Write-Host "[+] Port $port open on $currentIP" -ForegroundColor Green
                 
-                # Salva il risultato della scansione delle porte
+                # Save port scan result
                 $portScanResults += [PSCustomObject]@{
                     IP       = $currentIP
                     HostName = $device.HostName
                     Port     = $port
+                    Service  = Get-PortService -PortNumber $port
                 }
                 $tcpClient.EndConnect($asyncResult)
             }
 
             $tcpClient.Close()
         } catch {
-            # Ignora eventuali errori di connessione
+            # Ignore connection errors
         }
     }
 }
 
-Write-Host "`n[+] Scansione delle porte completata!" -ForegroundColor Green
+Write-Host "`n[+] Port scan completed!" -ForegroundColor Green
 
-# Mostra i risultati della scansione delle porte
+# Show port scan results
 if ($portScanResults.Count -gt 0) {
-    Write-Host "`n[*] Porte aperte trovate sui dispositivi:" -ForegroundColor Cyan
+    Write-Host "`n[*] Open ports found on devices:" -ForegroundColor Cyan
     $portScanResults | Sort-Object IP,Port | Format-Table -AutoSize
 } else {
-    Write-Host "[*] Nessuna porta aperta trovata sui dispositivi attivi." -ForegroundColor Yellow
+    Write-Host "[*] No open ports found on active devices." -ForegroundColor Yellow
 }
 
-# Evita che la finestra di PowerShell si chiuda immediatamente
-Write-Host "`nPremi Invio per terminare lo script..."
-[void][System.Console]::ReadLine()
+# Note: Final pause removed to allow execution with IRM | IEX
+Write-Host "`n[*] Scan completed!" -ForegroundColor Green
