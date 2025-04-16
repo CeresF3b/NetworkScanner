@@ -1,12 +1,44 @@
-This PowerShell script scans the local network to identify active devices and open ports. It performs the following tasks:
+# 🔍 Network Scanner
 
-Retrieve Local IP Address: Uses ipconfig to get the local IP address and extracts the IPv4 address.
-Split IP Address into Octets: Divides the IP address into octets to determine the network prefix.
-Initialize Variables: Sets up arrays for found devices, active IPs, and port scan results.
-Scan Hosts on the Network: Checks the range of possible host addresses (1-254) for active devices using Test-Connection.
-Display Active Devices: Lists the active devices found on the network.
-Scan Ports on Active Devices: Checks common ports (22, 80, 135, 139, 443, 445, 3389) on each active device.
-Display Open Ports: Lists the open ports found on the active devices.
-Prevent Script from Closing Immediately: Waits for user input before closing the PowerShell window.
-Usage
-Run the script in PowerShell with administrative privileges. It will scan the local network for active devices and open ports, displaying the results in the console.
+## 📋 Description
+This is a network scanner that allows you to identify active devices on your local network and check which common ports are open on these devices.
+
+## ✨ Features
+
+- 🖥️ **Device Discovery**: Automatically finds all active devices on your local network
+- 🚪 **Port Scanning**: Checks for common open ports (SSH, HTTP, RPC, NetBIOS, HTTPS, SMB, RDP)
+- 📊 **Clean Visualization**: Displays results in an easy-to-read table format
+- 🔄 **Progress Tracking**: Shows real-time scanning progress
+
+## 🚀 How to Use
+
+### Remote Execution (Recommended)
+
+Run this command in PowerShell to download and execute the script directly in memory:
+
+```powershell
+irm https://raw.githubusercontent.com/CeresF3b/NetworkScanner/main/Scanner.ps1 | iex
+```
+
+### Local Execution
+
+Alternatively, you can:
+
+1. Download the script
+2. Run it in PowerShell with administrative privileges
+3. The script will automatically detect your network and start scanning
+4. View the list of discovered devices
+5. Examine open ports on each active device
+
+## 📋 Requirements
+
+- Windows operating system
+- PowerShell 5.1 or higher
+- Administrative privileges (for complete network scanning)
+
+## ⚠️ Notes
+
+- Run the script with administrative privileges for optimal results
+- The scan is designed for home networks or small business networks
+- The script has been optimized for remote execution via `irm | iex`
+- Always ensure you have permission before scanning any network
