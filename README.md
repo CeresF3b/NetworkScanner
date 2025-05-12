@@ -1,6 +1,6 @@
 # 🔍 Network Scanner
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## 📋 Description
 
@@ -22,38 +22,29 @@ Run this command in PowerShell to download and execute the script directly in me
 ```powershell
 irm https://raw.githubusercontent.com/CeresF3b/NetworkScanner/main/Scanner.ps1 | iex
 ```
-Local Execution
+### Local Execution
 
 Alternatively, you can:
 
-    Download the script
+1. Download the script
+2. Run it in PowerShell with administrative privileges
+3. The script will automatically detect your network and start scanning
+4. View the list of discovered devices
+5. Examine open ports on each active device
 
-    Run it in PowerShell with administrative privileges
+## 📋 Requirements
 
-    The script will automatically detect your network and start scanning
+- Windows operating system
+- PowerShell 5.1 or higher
+- Administrative privileges (for complete network scanning)
 
-    View the list of discovered devices
+## ⚠️ Notes
 
-    Examine open ports on each active device
+- Run the script with administrative privileges for optimal results
+- The scan is designed for home networks or small business networks
+- The script has been optimized for remote execution via `irm | iex`
+- Always ensure you have permission before scanning any network
 
-📋 Requirements
+## 📜 License
 
-    Windows operating system
-
-    PowerShell 5.1 or higher
-
-    Administrative privileges (for complete network scanning)
-
-⚠️ Notes
-
-    Run the script with administrative privileges for optimal results
-
-    The scan is designed for home networks or small business networks
-
-    The script has been optimized for remote execution via irm | iex
-
-    Always ensure you have permission before scanning any network
-
-📜 License
-
-This project is licensed under the GNU General Public License v3.0. See the LICENSE file for details.
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0). See the LICENSE file for details.
